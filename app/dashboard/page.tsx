@@ -80,8 +80,17 @@ export default function DashboardPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full bg-primary hover:bg-primary/90">Book a Service</Button>
-                <Button variant="outline" className="w-full bg-transparent">
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90"
+                  onClick={() => window.location.href = "/services"}
+                >
+                  Find Services
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-transparent"
+                  onClick={() => window.location.href = "/dashboard/bookings"}
+                >
                   View Bookings
                 </Button>
               </CardContent>

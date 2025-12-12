@@ -29,6 +29,77 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  // Relations
+  services          Service[]
+  bookingsAsCustomer Booking[] @relation("CustomerBookings")
+  bookingsAsProvider Booking[] @relation("ProviderBookings")
+
   @@map("users")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  providerId String
+  provider   User     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  category    String   // "Plumbing", "Electrical", "Cleaning", etc.
+  price       Float    // Base price
+  priceType   String   @default("fixed") // "fixed" | "hourly" | "range"
+  priceRange  String?  // For range pricing like "80-120"
+  
+  // Service details
+  duration    Int?     // Duration in minutes
+  image       String?
+  isActive    Boolean  @default(true)
+  
+  // Location
+  serviceArea String?   // Areas where service is available
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  bookings    Booking[]
+
+  @@map("services")
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  
+  customerId  String
+  customer    User     @relation("CustomerBookings", fields: [customerId], references: [id])
+  
+  providerId  String
+  provider    User     @relation("ProviderBookings", fields: [providerId], references: [id])
+  
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  
+  // Booking details
+  status      String   @default("pending") // "pending" | "confirmed" | "in_progress" | "completed" | "cancelled"
+  scheduledDate DateTime
+  scheduledTime String // "10:00 AM"
+  
+  // Location
+  address     String
+  city        String?
+  state       String?
+  zipCode     String?
+  notes       String?
+  
+  // Pricing
+  price       Float
+  paymentStatus String @default("pending") // "pending" | "paid" | "refunded"
+  paymentMethod String? // "card" | "cash" | "demo"
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@map("bookings")
 }
 

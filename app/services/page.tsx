@@ -1,17 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MapPin, Star, Clock, DollarSign } from "lucide-react"
+import { MapPin, Star, Clock, DollarSign, Search } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-context"
+
+interface Service {
+  id: string
+  name: string
+  description: string | null
+  category: string
+  price: number
+  priceType: string
+  priceRange: string | null
+  duration: number | null
+  image: string | null
+  provider: {
+    id: string
+    name: string
+    avatar: string | null
+    isVerified: boolean
+  }
+}
 
 export default function ServicesPage() {
-  const [selectedCategory, setSelectedCategory] = useState("Cleaning")
-  const [sortBy, setSortBy] = useState("Relevance")
+  const router = useRouter()
+  const { user } = useAuth()
+  const [services, setServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState("relevance")
+  const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const [minPrice, setMinPrice] = useState("")
+  const [maxPrice, setMaxPrice] = useState("")
 
   const categories = [
     "Plumbing",
@@ -26,41 +54,41 @@ export default function ServicesPage() {
     "Car Wash",
   ]
 
-  const providers = [
-    {
-      id: 1,
-      name: "Golden Gate Cleaning",
-      rating: 4.8,
-      reviews: 123,
-      distance: 2.5,
-      eta: 15,
-      cost: "80-120",
-      status: "Available",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Bay Area Cleaning Solutions",
-      rating: 4.7,
-      reviews: 98,
-      distance: 3.2,
-      eta: 20,
-      cost: "90-130",
-      status: "Busy",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
-    },
-    {
-      id: 3,
-      name: "Citywide Cleaning Services",
-      rating: 4.6,
-      reviews: 75,
-      distance: 4.1,
-      eta: 25,
-      cost: "100-150",
-      status: "Available",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
-    },
-  ]
+  useEffect(() => {
+    fetchServices()
+  }, [selectedCategory, sortBy, verifiedOnly, minPrice, maxPrice])
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (selectedCategory) params.append("category", selectedCategory)
+      if (searchQuery) params.append("search", searchQuery)
+      if (minPrice) params.append("minPrice", minPrice)
+      if (maxPrice) params.append("maxPrice", maxPrice)
+      if (verifiedOnly) params.append("verified", "true")
+      params.append("sortBy", sortBy)
+
+      const response = await fetch(`/api/services?${params.toString()}`)
+      const data = await response.json()
+      setServices(data.services || [])
+    } catch (error) {
+      console.error("Error fetching services:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    fetchServices()
+  }
+
+  const formatPrice = (service: Service) => {
+    if (service.priceRange) return `$${service.priceRange}`
+    if (service.priceType === "hourly") return `$${service.price}/hour`
+    return `$${service.price}`
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,10 +96,18 @@ export default function ServicesPage() {
 
       <div className="flex">
         {/* Left Sidebar - Filters */}
-        <aside className="w-64 bg-secondary border-r border-border p-6 min-h-[calc(100vh-64px)]">
-          <div className="mb-6">
-            <Input placeholder="Search services" className="w-full" />
-          </div>
+        <aside className="w-64 bg-secondary border-r border-border p-6 min-h-[calc(100vh-64px)] overflow-y-auto">
+          <form onSubmit={handleSearch} className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search services"
+                className="w-full pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </form>
 
           <h3 className="font-semibold mb-4">Filters</h3>
 
@@ -79,6 +115,16 @@ export default function ServicesPage() {
           <div className="mb-6">
             <h4 className="font-medium text-sm mb-3">Category</h4>
             <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="category"
+                  checked={selectedCategory === null}
+                  onChange={() => setSelectedCategory(null)}
+                  className="w-4 h-4 accent-primary"
+                />
+                <span className="text-sm">All Categories</span>
+              </label>
               {categories.map((cat) => (
                 <label key={cat} className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -98,142 +144,147 @@ export default function ServicesPage() {
           {/* Price Range Filter */}
           <div className="mb-6">
             <h4 className="font-medium text-sm mb-3">Price Range</h4>
-            <input type="range" min="0" max="500" className="w-full" />
+            <div className="space-y-2">
+              <Input
+                type="number"
+                placeholder="Min $"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-full"
+              />
+              <Input
+                type="number"
+                placeholder="Max $"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
 
-          {/* Rating Filter */}
+          {/* Sort Options */}
           <div className="mb-6">
-            <h4 className="font-medium text-sm mb-3">Rating</h4>
-            <div className="space-y-2">
-              {["4 stars & up", "3 stars & up", "2 stars & up", "1 star & up"].map((rating) => (
-                <label key={rating} className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="rating" className="w-4 h-4 accent-primary" />
-                  <span className="text-sm">{rating}</span>
-                </label>
-              ))}
-            </div>
+            <h4 className="font-medium text-sm mb-3">Sort By</h4>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full border border-input rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="relevance">Relevance</option>
+              <option value="price_asc">Price (Low to High)</option>
+              <option value="price_desc">Price (High to Low)</option>
+            </select>
           </div>
 
           {/* Verified Providers */}
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="w-4 h-4 accent-primary" />
-            <span className="text-sm">Verified Providers</span>
+            <input
+              type="checkbox"
+              checked={verifiedOnly}
+              onChange={(e) => setVerifiedOnly(e.target.checked)}
+              className="w-4 h-4 accent-primary"
+            />
+            <span className="text-sm">Verified Providers Only</span>
           </label>
         </aside>
 
         {/* Main Content */}
         <main className="flex-1 p-8">
-          <h1 className="text-3xl font-bold mb-2">{selectedCategory} Services in San Francisco</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {selectedCategory ? `${selectedCategory} Services` : "All Services"}
+          </h1>
           <p className="text-muted-foreground mb-8">
-            Find top-rated {selectedCategory.toLowerCase()} for any job, big or small.
+            {selectedCategory
+              ? `Find top-rated ${selectedCategory.toLowerCase()} services`
+              : "Find top-rated service providers for any job, big or small."}
           </p>
 
-          {/* Sort Options */}
-          <div className="flex gap-4 mb-6">
-            <div className="flex gap-2">
-              <Button variant={sortBy === "Map" ? "default" : "outline"} onClick={() => setSortBy("Map")}>
-                Map
-              </Button>
-              <Button variant={sortBy === "List" ? "default" : "outline"} onClick={() => setSortBy("List")}>
-                List
-              </Button>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading services...</p>
             </div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="border border-input rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option>Relevance</option>
-              <option>Price (Low to High)</option>
-              <option>Price (High to Low)</option>
-            </select>
-          </div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">No services found</p>
+              <Button onClick={() => {
+                setSelectedCategory(null)
+                setSearchQuery("")
+                setMinPrice("")
+                setMaxPrice("")
+                fetchServices()
+              }}>Clear Filters</Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {services.map((service) => (
+                <Card key={`service-${service.id}`} className="hover:shadow-lg transition">
+                  <CardContent className="p-0">
+                    <div className="flex gap-4">
+                      {/* Service Image */}
+                      <div className="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden">
+                        <Image
+                          src={service.image || service.provider.avatar || "/placeholder.svg"}
+                          alt={service.name}
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
 
-          {/* Map View Placeholder */}
-          <div className="bg-blue-100 rounded-lg h-96 mb-8 flex items-center justify-center text-muted-foreground">
-            Interactive Map - Nearby {selectedCategory} Providers
-          </div>
-
-          {/* Provider List */}
-          <h2 className="text-xl font-bold mb-4">Nearby {selectedCategory} Providers</h2>
-          <div className="space-y-4">
-            {providers.map((provider) => (
-              <Card key={provider.id} className="hover:shadow-lg transition">
-                <CardContent className="p-0">
-                  <div className="flex gap-4">
-                    {/* Provider Image */}
-                    <div className="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden">
-                      <Image
-                        src={provider.image || "/placeholder.svg"}
-                        alt={provider.name}
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    {/* Provider Info */}
-                    <div className="flex-1 py-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold">{provider.name}</h3>
-                        <Link href={`/provider/${provider.id}`}>
-                          <Button variant="ghost" size="sm">
-                            View Profile
+                      {/* Service Info */}
+                      <div className="flex-1 py-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="font-semibold text-lg">{service.name}</h3>
+                            <p className="text-sm text-muted-foreground mb-1">
+                              by {service.provider.name}
+                              {service.provider.isVerified && (
+                                <span className="ml-2 text-primary">✓ Verified</span>
+                              )}
+                            </p>
+                            {service.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                          <span className="font-medium text-foreground">{formatPrice(service)}</span>
+                          {service.duration && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {service.duration} min
+                            </span>
+                          )}
+                          <span className="text-xs bg-secondary px-2 py-1 rounded">{service.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-4">
+                          <Link href={`/provider/${service.provider.id}`}>
+                            <Button variant="outline" size="sm">
+                              View Profile
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90"
+                            onClick={() => {
+                              if (!user) {
+                                router.push(`/auth/login?redirect=/book/${service.id}`)
+                              } else {
+                                router.push(`/book/${service.id}`)
+                              }
+                            }}
+                          >
+                            Book Now
                           </Button>
-                        </Link>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                        <span className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-primary text-primary" />
-                          {provider.rating} ({provider.reviews} reviews)
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {provider.distance} miles
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          ETA: {provider.eta} min
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          Est. Cost: ${provider.cost}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-xs font-medium px-2 py-1 rounded ${
-                            provider.status === "Available"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          Status: {provider.status}
-                        </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Multi-Provider Bids Section */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Multi-Provider Bids</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground mb-4">
-                Get multiple bids for your {selectedCategory.toLowerCase()} project
-              </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Post your project details and receive bids from multiple providers. Compare quotes and choose the best
-                fit for your needs.
-              </p>
-              <Button className="bg-primary hover:bg-primary/90">Post a Project</Button>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </main>
       </div>
     </div>

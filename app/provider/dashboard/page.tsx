@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -7,9 +8,41 @@ import { Badge } from "@/components/ui/badge"
 import { AlertCircle, CheckCircle2, XCircle, Clock } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
 import { ProtectedRoute } from "@/components/protected-route"
+import type { User } from "@/lib/auth"
 
 export default function ProviderDashboardPage() {
-  const { user } = useAuth()
+  const { user: authUser } = useAuth()
+  const [user, setUser] = useState<User | null>(authUser || null)
+
+  // Refresh user data on mount to get latest verification status
+  useEffect(() => {
+    const refreshUser = async () => {
+      try {
+        const storedUser = localStorage.getItem("homease_user")
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser)
+          setUser(parsedUser)
+          
+          // Fetch latest user data from API to get updated verification status
+          const response = await fetch(`/api/auth/me?userId=${parsedUser.id}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.user) {
+              setUser(data.user)
+              localStorage.setItem("homease_user", JSON.stringify(data.user))
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error refreshing user:", error)
+      }
+    }
+    
+    refreshUser()
+    // Refresh every 30 seconds to check for verification status updates
+    const interval = setInterval(refreshUser, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const getVerificationStatus = () => {
     if (user?.isVerified) {
@@ -153,8 +186,17 @@ export default function ProviderDashboardPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full bg-primary hover:bg-primary/90">Update Availability</Button>
-                <Button variant="outline" className="w-full bg-transparent">
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90"
+                  onClick={() => window.location.href = "/provider/availability"}
+                >
+                  Update Availability
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-transparent"
+                  onClick={() => window.location.href = "/provider/bookings"}
+                >
                   View Bookings
                 </Button>
               </CardContent>
