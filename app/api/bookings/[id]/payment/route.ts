@@ -32,12 +32,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Update booking payment status
+    const newStatus = booking.status === "pending" ? "confirmed" : booking.status
     const updatedBooking = await db.booking.update({
       where: { id: resolvedParams.id },
       data: {
         paymentStatus: "paid",
         paymentMethod,
-        status: booking.status === "pending" ? "confirmed" : booking.status,
+        status: newStatus,
       },
       include: {
         service: {
@@ -64,6 +65,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
+    // If booking is confirmed, block the time slot
+    if (newStatus === "confirmed" && booking.status !== "confirmed") {
+      const dateStr = formatDateString(booking.scheduledDate)
+      await blockTimeSlot(
+        booking.providerId,
+        dateStr,
+        booking.scheduledTime
+      )
+    }
+
     return NextResponse.json({
       booking: updatedBooking,
       payment: paymentResult,
@@ -72,6 +83,62 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   } catch (error) {
     console.error("Process payment error:", error)
     return NextResponse.json({ error: "Failed to process payment" }, { status: 500 })
+  }
+}
+
+// Helper function to format date string without timezone conversion
+function formatDateString(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+// Helper function to block a time slot
+async function blockTimeSlot(providerId: string, date: string, time: string) {
+  try {
+    let schedule = await db.providerSchedule.findUnique({
+      where: { providerId },
+    })
+
+    if (!schedule) {
+      // Create schedule if it doesn't exist
+      const defaultHours = {
+        monday: { start: "09:00", end: "17:00", enabled: true },
+        tuesday: { start: "09:00", end: "17:00", enabled: true },
+        wednesday: { start: "09:00", end: "17:00", enabled: true },
+        thursday: { start: "09:00", end: "17:00", enabled: true },
+        friday: { start: "09:00", end: "17:00", enabled: true },
+        saturday: { start: "09:00", end: "17:00", enabled: false },
+        sunday: { start: "09:00", end: "17:00", enabled: false },
+      }
+
+      schedule = await db.providerSchedule.create({
+        data: {
+          providerId,
+          workingHours: JSON.stringify(defaultHours),
+          blockedDates: JSON.stringify([]),
+          blockedTimeSlots: JSON.stringify([]),
+        },
+      })
+    }
+
+    const blockedSlots = schedule.blockedTimeSlots ? JSON.parse(schedule.blockedTimeSlots) : []
+    const slotKey = `${date}|${time}`
+
+    // Check if already blocked
+    if (!blockedSlots.some((slot: { date: string; time: string }) => `${slot.date}|${slot.time}` === slotKey)) {
+      blockedSlots.push({ date, time })
+
+      await db.providerSchedule.update({
+        where: { providerId },
+        data: {
+          blockedTimeSlots: JSON.stringify(blockedSlots),
+        },
+      })
+    }
+  } catch (error) {
+    console.error("Error blocking time slot:", error)
   }
 }
 

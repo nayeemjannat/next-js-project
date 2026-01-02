@@ -1,23 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Header } from "@/components/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Edit, Trash2, Plus, X } from "lucide-react"
+import { Edit, Trash2, Plus, X, Camera, Image as ImageIcon, Eye } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
 import { toast } from "sonner"
+import Image from "next/image"
 
 interface Service {
   id: string
@@ -31,6 +27,11 @@ interface Service {
   image: string | null
   serviceArea: string | null
   isActive: boolean
+  images?: {
+    id: string
+    imageUrl: string
+    order: number
+  }[]
 }
 
 const categories = [
@@ -64,6 +65,11 @@ export default function ProviderServicesPage() {
     serviceArea: "",
     isActive: true,
   })
+  const [serviceImages, setServiceImages] = useState<string[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   useEffect(() => {
     if (user) {
@@ -92,7 +98,21 @@ export default function ProviderServicesPage() {
     }
   }
 
-  const handleOpenDialog = (service?: Service) => {
+  const fetchServiceImages = async (serviceId: string) => {
+    try {
+      const response = await fetch(`/api/services/${serviceId}/images`)
+      const data = await response.json()
+      if (response.ok && data.images) {
+        const imageUrls = data.images.map((img: any) => img.imageUrl)
+        setServiceImages(imageUrls)
+        setImagePreviews(imageUrls)
+      }
+    } catch (error) {
+      console.error("Error fetching service images:", error)
+    }
+  }
+
+  const handleOpenDialog = async (service?: Service) => {
     if (service) {
       setEditingService(service)
       // Initialize form based on priceType - avoid conflicts
@@ -109,6 +129,7 @@ export default function ProviderServicesPage() {
         serviceArea: service.serviceArea || "",
         isActive: service.isActive,
       })
+      await fetchServiceImages(service.id)
     } else {
       setEditingService(null)
       setFormData({
@@ -123,6 +144,8 @@ export default function ProviderServicesPage() {
         serviceArea: "",
         isActive: true,
       })
+      setServiceImages([])
+      setImagePreviews([])
     }
     setIsDialogOpen(true)
   }
@@ -130,6 +153,74 @@ export default function ProviderServicesPage() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setEditingService(null)
+    setServiceImages([])
+    setImagePreviews([])
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const newPreviews: string[] = []
+    const newImages: string[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image file`)
+        continue
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 5MB)`)
+        continue
+      }
+
+      try {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64 = reader.result as string
+          newPreviews.push(base64)
+          newImages.push(base64)
+
+          if (newPreviews.length === files.length) {
+            setImagePreviews([...imagePreviews, ...newPreviews])
+            setServiceImages([...serviceImages, ...newImages])
+          }
+        }
+        reader.readAsDataURL(file)
+      } catch (error) {
+        console.error("Error reading file:", error)
+        toast.error(`Failed to process ${file.name}`)
+      }
+    }
+  }
+
+  const handleRemoveImage = (index: number) => {
+    const newPreviews = imagePreviews.filter((_, i) => i !== index)
+    const newImages = serviceImages.filter((_, i) => i !== index)
+    setImagePreviews(newPreviews)
+    setServiceImages(newImages)
+  }
+
+  const openGallery = (images: string[], index: number = 0) => {
+    setGalleryImages(images)
+    setCurrentImageIndex(index)
+    setGalleryOpen(true)
+  }
+
+  const closeGallery = () => {
+    setGalleryOpen(false)
+    setGalleryImages([])
+    setCurrentImageIndex(0)
+  }
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)
+  }
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -155,6 +246,8 @@ export default function ProviderServicesPage() {
     }
 
     try {
+      let serviceId: string
+
       if (editingService) {
         // Update service
         const response = await fetch(`/api/services/${editingService.id}`, {
@@ -178,6 +271,7 @@ export default function ProviderServicesPage() {
           throw new Error("Failed to update service")
         }
 
+        serviceId = editingService.id
         toast.success("Service updated successfully")
       } else {
         // Create service
@@ -202,7 +296,26 @@ export default function ProviderServicesPage() {
           throw new Error("Failed to create service")
         }
 
+        const data = await response.json()
+        serviceId = data.service.id
         toast.success("Service created successfully")
+      }
+
+      // Save images if any
+      if (serviceImages.length > 0) {
+        try {
+          const imagesResponse = await fetch(`/api/services/${serviceId}/images`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ images: serviceImages }),
+          })
+
+          if (!imagesResponse.ok) {
+            console.error("Failed to save images")
+          }
+        } catch (error) {
+          console.error("Error saving images:", error)
+        }
       }
 
       handleCloseDialog()
@@ -284,6 +397,7 @@ export default function ProviderServicesPage() {
                     <th className="text-left py-3 px-4 font-semibold">Category</th>
                     <th className="text-left py-3 px-4 font-semibold">Pricing</th>
                     <th className="text-left py-3 px-4 font-semibold">Status</th>
+                    <th className="text-left py-3 px-4 font-semibold">Images</th>
                     <th className="text-left py-3 px-4 font-semibold">Actions</th>
                   </tr>
                 </thead>
@@ -310,6 +424,39 @@ export default function ProviderServicesPage() {
                         >
                           {service.isActive ? "Active" : "Inactive"}
                         </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        {service.images && service.images.length > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-2">
+                              {service.images.slice(0, 3).map((image, index) => (
+                                <div key={image.id} className="w-6 h-6 rounded-full border-2 border-background overflow-hidden">
+                                  <img
+                                    src={image.imageUrl}
+                                    alt={`Image ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {service.images.length} image{service.images.length > 1 ? 's' : ''}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const imageUrls = service.images!.map(img => img.imageUrl)
+                                openGallery(imageUrls, 0)
+                              }}
+                              title="View gallery"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No images</span>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
@@ -473,7 +620,7 @@ export default function ProviderServicesPage() {
               </div>
 
               <div className="col-span-2">
-                <Label htmlFor="image">Image URL</Label>
+                <Label htmlFor="image">Main Image URL (Optional)</Label>
                 <Input
                   id="image"
                   type="url"
@@ -481,6 +628,55 @@ export default function ProviderServicesPage() {
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground mt-1">This will be used as the primary thumbnail</p>
+              </div>
+
+              <div className="col-span-2">
+                <Label>Service Gallery (Previous Work Photos)</Label>
+                <div className="mt-2">
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <Button type="button" variant="outline" asChild>
+                      <span>
+                        <Camera className="w-4 h-4 mr-2" />
+                        Upload Images
+                      </span>
+                    </Button>
+                  </Label>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">Upload multiple images to showcase your previous work</p>
+                </div>
+
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-4 gap-3">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square rounded-lg overflow-hidden border border-border">
+                          <Image
+                            src={preview}
+                            alt={`Service image ${index + 1}`}
+                            width={150}
+                            height={150}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {editingService && (
@@ -507,6 +703,61 @@ export default function ProviderServicesPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Gallery Modal */}
+      <Dialog open={galleryOpen} onOpenChange={closeGallery}>
+        <DialogContent className="max-w-4xl w-full p-0">
+          <div className="relative">
+            <button
+              onClick={closeGallery}
+              className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            {galleryImages.length > 0 && (
+              <div className="relative">
+                <div className="flex items-center justify-center min-h-[500px] bg-black">
+                  <img
+                    src={galleryImages[currentImageIndex]}
+                    alt={`Gallery image ${currentImageIndex + 1}`}
+                    className="max-w-full max-h-[80vh] object-contain"
+                  />
+                </div>
+                
+                {galleryImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70"
+                    >
+                      <X className="w-5 h-5 rotate-180" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black-70"
+                    >
+                      <X className="w-5 h-5 rotate-90" />
+                    </button>
+                    
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                      {galleryImages.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === currentImageIndex ? "bg-white" : "bg-white/50"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

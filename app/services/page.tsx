@@ -5,7 +5,8 @@ import { Header } from "@/components/header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MapPin, Star, Clock, DollarSign, Search } from "lucide-react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { MapPin, Star, Clock, DollarSign, Search, X } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -21,6 +22,11 @@ interface Service {
   priceRange: string | null
   duration: number | null
   image: string | null
+  images?: {
+    id: string
+    imageUrl: string
+    order: number
+  }[]
   provider: {
     id: string
     name: string
@@ -40,6 +46,9 @@ export default function ServicesPage() {
   const [verifiedOnly, setVerifiedOnly] = useState(false)
   const [minPrice, setMinPrice] = useState("")
   const [maxPrice, setMaxPrice] = useState("")
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const categories = [
     "Plumbing",
@@ -71,7 +80,25 @@ export default function ServicesPage() {
 
       const response = await fetch(`/api/services?${params.toString()}`)
       const data = await response.json()
-      setServices(data.services || [])
+      const servicesList = data.services || []
+      
+      // Fetch images for each service
+      const servicesWithImages = await Promise.all(
+        servicesList.map(async (service: Service) => {
+          try {
+            const imagesRes = await fetch(`/api/services/${service.id}/images`)
+            const imagesData = await imagesRes.json()
+            return {
+              ...service,
+              images: imagesData.images || [],
+            }
+          } catch (error) {
+            return { ...service, images: [] }
+          }
+        })
+      )
+      
+      setServices(servicesWithImages)
     } catch (error) {
       console.error("Error fetching services:", error)
     } finally {
@@ -88,6 +115,26 @@ export default function ServicesPage() {
     if (service.priceRange) return `$${service.priceRange}`
     if (service.priceType === "hourly") return `$${service.price}/hour`
     return `$${service.price}`
+  }
+
+  const openGallery = (images: string[], index: number = 0) => {
+    setGalleryImages(images)
+    setCurrentImageIndex(index)
+    setGalleryOpen(true)
+  }
+
+  const closeGallery = () => {
+    setGalleryOpen(false)
+    setGalleryImages([])
+    setCurrentImageIndex(0)
+  }
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)
+  }
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
   }
 
   return (
@@ -222,14 +269,39 @@ export default function ServicesPage() {
                   <CardContent className="p-0">
                     <div className="flex gap-4">
                       {/* Service Image */}
-                      <div className="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden">
-                        <Image
-                          src={service.image || service.provider.avatar || "/placeholder.svg"}
-                          alt={service.name}
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                        />
+                      <div 
+                        className="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden relative cursor-pointer"
+                        onClick={() => {
+                          if (service.images && service.images.length > 0) {
+                            const imageUrls = service.images.map(img => img.imageUrl)
+                            openGallery(imageUrls, 0)
+                          }
+                        }}
+                      >
+                        {service.images && service.images.length > 0 ? (
+                          <>
+                            <Image
+                              src={service.images[0].imageUrl}
+                              alt={service.name}
+                              width={96}
+                              height={96}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform"
+                            />
+                            {service.images.length > 1 && (
+                              <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1 rounded">
+                                +{service.images.length - 1}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <Image
+                            src={service.image || service.provider.avatar || "/placeholder.svg"}
+                            alt={service.name}
+                            width={96}
+                            height={96}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </div>
 
                       {/* Service Info */}
@@ -259,7 +331,7 @@ export default function ServicesPage() {
                           <span className="text-xs bg-secondary px-2 py-1 rounded">{service.category}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-4">
-                          <Link href={`/provider/${service.provider.id}`}>
+                          <Link href={`/profile/${service.provider.id}`}>
                             <Button variant="outline" size="sm">
                               View Profile
                             </Button>
@@ -287,6 +359,63 @@ export default function ServicesPage() {
           )}
         </main>
       </div>
+
+      {/* Gallery Modal */}
+      <Dialog open={galleryOpen} onOpenChange={closeGallery}>
+        <DialogContent className="max-w-4xl w-full p-0">
+          <div className="relative">
+            <button
+              onClick={closeGallery}
+              className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            {galleryImages.length > 0 && (
+              <div className="relative">
+                <div className="flex items-center justify-center min-h-[500px] bg-black">
+                  <Image
+                    src={galleryImages[currentImageIndex]}
+                    alt={`Gallery image ${currentImageIndex + 1}`}
+                    width={800}
+                    height={600}
+                    className="max-w-full max-h-[80vh] object-contain"
+                  />
+                </div>
+                
+                {galleryImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70"
+                    >
+                      <X className="w-5 h-5 rotate-180" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70"
+                    >
+                      <X className="w-5 h-5 rotate-90" />
+                    </button>
+                    
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                      {galleryImages.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === currentImageIndex ? "bg-white" : "bg-white/50"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -25,6 +25,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             verificationStatus: true,
           },
         },
+        images: {
+          orderBy: { order: "asc" },
+        },
       },
     })
 

@@ -26,6 +26,12 @@ model User {
   verifiedBy        String?   // Admin ID who verified
   rejectionReason   String?
   
+  // Provider profile fields
+  bio               String?   // Provider bio/description
+  experience        Int?      // Years of experience
+  location          String?   // Service location/city
+  specialties       String?   // Comma-separated specialties
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -33,6 +39,10 @@ model User {
   services          Service[]
   bookingsAsCustomer Booking[] @relation("CustomerBookings")
   bookingsAsProvider Booking[] @relation("ProviderBookings")
+  schedule          ProviderSchedule?
+  reviewsGiven      Review[]  @relation("CustomerReviews")
+  reviewsReceived   Review[]  @relation("ProviderReviews")
+  addresses         Address[]
 
   @@map("users")
 }
@@ -62,6 +72,8 @@ model Service {
 
   // Relations
   bookings    Booking[]
+  reviews     Review[]
+  images      ServiceImage[]
 
   @@map("services")
 }
@@ -100,6 +112,116 @@ model Booking {
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
+  // Relations
+  review      Review?
+  payment     Payment?
+
   @@map("bookings")
+}
+
+model ProviderSchedule {
+  id          String   @id @default(cuid())
+  providerId String   @unique
+  provider   User     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  // Working hours for each day (stored as JSON: { "monday": { "start": "09:00", "end": "17:00", "enabled": true }, ... })
+  // Days: monday, tuesday, wednesday, thursday, friday, saturday, sunday
+  workingHours String  @default("{}") // JSON string
+  
+  // Blocked dates (stored as JSON array of date strings: ["2024-12-25", ...])
+  blockedDates String? // JSON array of date strings
+  
+  // Blocked time slots (stored as JSON array: [{"date": "2024-12-25", "time": "10:00 AM"}, ...])
+  blockedTimeSlots String? // JSON array of {date, time} objects
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("provider_schedules")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  customerId  String
+  customer    User     @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
+  
+  providerId  String
+  provider    User     @relation("ProviderReviews", fields: [providerId], references: [id], onDelete: Cascade)
+  
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  // Review details
+  rating      Int      // 1-5 stars
+  comment     String?  // Optional review text
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("reviews")
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  customerId String
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  label       String   // "Home", "Work", etc.
+  address     String
+  city        String?
+  state       String?
+  zipCode     String?
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("addresses")
+}
+
+model PlatformSettings {
+  id          String   @id @default(cuid())
+  commissionRate Float  @default(0.15) // 15% commission
+  updatedAt   DateTime  @updatedAt
+  updatedBy   String?   // Admin ID who updated
+
+  @@map("platform_settings")
+}
+
+model ServiceImage {
+  id          String   @id @default(cuid())
+  serviceId  String
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  
+  imageUrl   String   // Base64 or URL
+  order      Int      @default(0) // For ordering images
+  
+  createdAt   DateTime  @default(now())
+
+  @@map("service_images")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  bookingId     String   @unique
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  status        String   // "PAID" | "FAILED" | "PENDING"
+  transactionId String?
+  method        String   // "SSLCommerz Sandbox" | "SSLCommerz Live" | etc.
+  amount        Float
+  
+  // SSLCommerz response data
+  gatewayResponse String? // JSON string of gateway response
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("payments")
 }
 

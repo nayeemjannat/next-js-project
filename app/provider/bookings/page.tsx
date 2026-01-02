@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Clock, MapPin, DollarSign, MessageSquare, CheckCircle, XCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Clock, MapPin, DollarSign, MessageSquare, ArrowUpDown, Eye, CheckCircle, XCircle } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
 import { toast } from "sonner"
 
@@ -37,18 +38,19 @@ export default function ProviderBookingsPage() {
   const { user } = useAuth()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortBy, setSortBy] = useState("date_desc")
 
   useEffect(() => {
     if (user) {
       fetchBookings()
     }
-  }, [user])
+  }, [user, sortBy])
 
   const fetchBookings = async () => {
     if (!user) return
 
     try {
-      const response = await fetch(`/api/bookings?userId=${user.id}&userType=provider`)
+      const response = await fetch(`/api/bookings?userId=${user.id}&userType=provider&sortBy=${sortBy}`)
       const data = await response.json()
       setBookings(data.bookings || [])
     } catch (error) {
@@ -100,8 +102,27 @@ export default function ProviderBookingsPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-2">My Bookings</h1>
-      <p className="text-muted-foreground mb-8">Manage your service bookings</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">My Bookings</h1>
+          <p className="text-muted-foreground">Manage your service bookings</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date_desc">Newest First</SelectItem>
+              <SelectItem value="date_asc">Oldest First</SelectItem>
+              <SelectItem value="price_desc">Price: High to Low</SelectItem>
+              <SelectItem value="price_asc">Price: Low to High</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {bookings.length === 0 ? (
         <Card>

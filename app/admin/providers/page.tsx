@@ -157,6 +157,12 @@ export default function ProvidersPage() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
+                          <button
+                            onClick={() => window.location.href = `/profile/${provider.id}`}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            View Profile
+                          </button>
                           {!provider.isVerified &&
                             provider.verificationStatus !== "rejected" && (
                               <>
