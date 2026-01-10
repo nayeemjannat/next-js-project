@@ -35,12 +35,24 @@ export async function GET(
     const blockedDates = schedule.blockedDates ? JSON.parse(schedule.blockedDates) : []
     const blockedTimeSlots = schedule.blockedTimeSlots ? JSON.parse(schedule.blockedTimeSlots) : []
 
+    // Debug: Log the working hours structure
+    console.log("Provider working hours:", workingHours)
+    
+    // Test day name mapping
+    const testDate = new Date()
+    const testDayName = testDate.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+    console.log("Test day name mapping:", { date: testDate.toDateString(), dayName: testDayName })
+
     // If date is provided, check specific date availability
     if (dateParam) {
       // Use the dateParam directly to avoid timezone issues
       const dateStr = dateParam
       const selectedDate = new Date(dateParam + "T00:00:00")
+      
+      // Get day name in consistent format (lowercase)
       const dayName = selectedDate.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+      
+      console.log("Checking availability for:", { dateStr, dayName, workingHours })
       
       // Check if date is blocked
       if (blockedDates.includes(dateStr)) {
@@ -53,11 +65,13 @@ export async function GET(
 
       // Check if provider works on this day
       const daySchedule = workingHours[dayName]
+      console.log("Day schedule:", { dayName, daySchedule })
+      
       if (!daySchedule || !daySchedule.enabled) {
         return NextResponse.json({
           available: false,
           availableSlots: [],
-          message: "Provider does not work on this day",
+          message: `Provider does not work on ${dayName}`,
         })
       }
 

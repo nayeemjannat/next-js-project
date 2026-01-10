@@ -20,6 +20,7 @@ interface Booking {
   state: string | null
   price: number
   paymentStatus: string
+  notes?: string | null
   service: {
     id: string
     name: string
@@ -66,7 +67,7 @@ export default function ProviderBookingsPage() {
       const response = await fetch(`/api/bookings/${bookingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, actorId: user?.id, actorType: user?.userType }),
       })
 
       if (response.ok) {
@@ -168,6 +169,12 @@ export default function ProviderBookingsPage() {
                           <DollarSign className="w-4 h-4" />
                           ${booking.price.toFixed(2)} ({booking.paymentStatus})
                         </div>
+                        {booking.notes && (
+                          <div className="mt-2 text-sm">
+                            <span className="font-medium">Notes: </span>
+                            <span className="text-muted-foreground">{booking.notes}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

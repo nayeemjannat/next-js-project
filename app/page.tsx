@@ -1,13 +1,65 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { Star, Wrench, Droplets, Zap, Brush, Leaf } from "lucide-react"
+import { Star, Wrench, Droplets, Zap, Brush, Leaf, Search, Shield } from "lucide-react"
 import Image from "next/image"
+import { useAuth } from "@/components/auth-context"
 
 export default function HomePage() {
+  const router = useRouter()
+  const { user } = useAuth()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
+
+  const handleSearch = async () => {
+    setIsSearching(true)
+    try {
+      // Build search query
+      const params = new URLSearchParams()
+      if (searchQuery.trim()) params.append("search", searchQuery.trim())
+      
+      // Redirect to services page with search parameters
+      router.push(`/services?${params.toString()}`)
+    } catch (error) {
+      console.error("Search error:", error)
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleUserTypeAction = (userType: string) => {
+    if (!user) {
+      // Redirect to login with user type preference
+      router.push(`/auth/login?userType=${userType}`)
+      return
+    }
+
+    // Route authenticated users to appropriate dashboard
+    switch (userType) {
+      case "customer":
+        router.push("/dashboard")
+        break
+      case "provider":
+        router.push("/provider/dashboard")
+        break
+      case "admin":
+        if (user.userType === "admin") {
+          router.push("/admin")
+        } else {
+          alert("Access denied. Admin privileges required.")
+        }
+        break
+      default:
+        router.push("/services")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -23,14 +75,63 @@ export default function HomePage() {
               Connect with skilled service providers in your area for all your home needs.
             </p>
 
-            {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
-              <input
-                type="text"
-                placeholder="Enter your location"
-                className="flex-1 px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <Button className="bg-primary hover:bg-primary/90 text-white px-8">Search</Button>
+            {/* Simple Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search for services (e.g., plumbing, cleaning)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
+              </div>
+              <Button 
+                onClick={handleSearch}
+                disabled={isSearching}
+                className="bg-primary hover:bg-primary/90 text-white px-8"
+              >
+                {isSearching ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Search"
+                )}
+              </Button>
+            </div>
+
+            {/* Quick Access for Different User Types */}
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleUserTypeAction("customer")}
+                className="flex items-center gap-2"
+              >
+                <Star className="w-4 h-4" />
+                {user?.userType === "customer" ? "My Dashboard" : "Customer Portal"}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleUserTypeAction("provider")}
+                className="flex items-center gap-2"
+              >
+                <Wrench className="w-4 h-4" />
+                {user?.userType === "provider" ? "Provider Dashboard" : "Become a Provider"}
+              </Button>
+              {user?.userType === "admin" && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleUserTypeAction("admin")}
+                  className="flex items-center gap-2"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin Panel
+                </Button>
+              )}
             </div>
           </div>
         </div>

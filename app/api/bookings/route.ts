@@ -42,6 +42,16 @@ export async function GET(request: NextRequest) {
             name: true,
             category: true,
             image: true,
+            images: {
+              select: {
+                id: true,
+                imageUrl: true,
+                order: true,
+              },
+              orderBy: {
+                order: 'asc',
+              },
+            },
           },
         },
         customer: {
@@ -244,6 +254,24 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Notify provider about new booking (don't block booking on notification failure)
+    try {
+      const title = `New booking received`
+      const bodyText = `${customer.name} booked ${booking.service.name} for ${scheduledDate} at ${scheduledTime}`
+      await db.notification.create({
+        data: {
+          title,
+          body: bodyText,
+          userId: provider.id,
+          userType: "provider",
+          link: `/provider/bookings`,
+        },
+      })
+      console.log(`Created notification for provider ${provider.id} for booking ${booking.id}`)
+    } catch (notifErr) {
+      console.error("Failed to create provider notification:", notifErr)
+    }
 
     return NextResponse.json({ booking }, { status: 201 })
   } catch (error) {

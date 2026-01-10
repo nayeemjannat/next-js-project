@@ -24,13 +24,13 @@ export default function AvailabilityPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [workingHours, setWorkingHours] = useState<WorkingHours>({
+    sunday: { start: "09:00", end: "17:00", enabled: false },
     monday: { start: "09:00", end: "17:00", enabled: true },
     tuesday: { start: "09:00", end: "17:00", enabled: true },
     wednesday: { start: "09:00", end: "17:00", enabled: true },
     thursday: { start: "09:00", end: "17:00", enabled: true },
     friday: { start: "09:00", end: "17:00", enabled: true },
     saturday: { start: "09:00", end: "17:00", enabled: false },
-    sunday: { start: "09:00", end: "17:00", enabled: false },
   })
   const [blockedDates, setBlockedDates] = useState<string[]>([])
   const [blockedTimeSlots, setBlockedTimeSlots] = useState<{ date: string; time: string }[]>([])
@@ -108,14 +108,16 @@ export default function AvailabilityPage() {
     }
   }
 
-  const handleSave = async () => {
-    if (!user) {
-      toast.error("Please log in to save your schedule")
+  const saveSchedule = async () => {
+    if (!user || user.userType !== "provider") {
+      console.error("User not available or not a provider")
       return
     }
 
     setSaving(true)
     try {
+      console.log("Saving schedule:", { workingHours, blockedDates, blockedTimeSlots })
+      
       const response = await fetch("/api/provider/availability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -127,16 +129,14 @@ export default function AvailabilityPage() {
         }),
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success("Schedule saved successfully!")
-      } else {
-        throw new Error(data.error || "Failed to save schedule")
+      if (!response.ok) {
+        throw new Error(`Failed to save schedule: ${response.status}`)
       }
+
+      toast.success("Availability saved successfully")
     } catch (error) {
       console.error("Error saving schedule:", error)
-      toast.error("Failed to save schedule")
+      toast.error("Failed to save availability")
     } finally {
       setSaving(false)
     }
@@ -233,7 +233,7 @@ export default function AvailabilityPage() {
   }
 
   const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-  const displayDayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+  const displayDayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
   if (loading || authLoading) {
     return (
@@ -485,7 +485,7 @@ export default function AvailabilityPage() {
                 </div>
               ))}
               <Button
-                onClick={handleSave}
+                onClick={saveSchedule}
                 disabled={saving}
                 className="w-full bg-primary hover:bg-primary/90 mt-4"
               >

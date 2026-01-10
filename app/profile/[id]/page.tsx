@@ -70,16 +70,12 @@ export default function PublicProviderProfilePage() {
   }, [params.id])
 
   const fetchProviderData = async () => {
-    console.log("Fetching provider data...")
     try {
       const providerId = Array.isArray(params.id) ? params.id[0] : params.id
-      console.log("Provider ID:", providerId)
       
       // Fetch provider
       const providerRes = await fetch(`/api/providers/${providerId}`)
-      console.log("Provider response status:", providerRes.status)
       const providerData = await providerRes.json()
-      console.log("Provider data:", providerData)
       
       if (providerRes.ok && providerData.provider) {
         setProvider(providerData.provider)
@@ -128,7 +124,6 @@ export default function PublicProviderProfilePage() {
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading provider profile...</p>
-              <p className="text-xs text-muted-foreground mt-2">Route: /profile/[id]</p>
             </div>
           </div>
         </div>
@@ -143,7 +138,6 @@ export default function PublicProviderProfilePage() {
           <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
             <div className="text-center">
               <p className="text-muted-foreground mb-4">Provider not found</p>
-              <p className="text-xs text-muted-foreground mb-4">Params: {JSON.stringify(params)}</p>
               <Button onClick={() => router.push("/services")}>Back to Services</Button>
             </div>
           </div>

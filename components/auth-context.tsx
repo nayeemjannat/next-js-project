@@ -93,6 +93,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(data.user)
       localStorage.setItem("homease_user", JSON.stringify(data.user))
+
+      // After registration, send email verification OTP
+      try {
+        await fetch('/api/auth/send-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: data.user.id, newEmail: data.user.email }),
+        })
+      } catch (err) {
+        console.error('send-verification error', err)
+      }
     } catch (error) {
       setUser(null)
       localStorage.removeItem("homease_user")

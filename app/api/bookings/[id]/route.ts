@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const resolvedParams = await Promise.resolve(params)
     const body = await request.json()
-    const { status, paymentStatus, paymentMethod } = body
+    const { status, paymentStatus, paymentMethod, actorId, actorType } = body
 
     // Get current booking to check status change
     const currentBooking = await db.booking.findUnique({
@@ -114,10 +114,98 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
+    // Create notifications for relevant parties when status or paymentStatus changes
+    try {
+      const notifications: Promise<any>[] = []
+      const statusChanged = status && status !== currentBooking.status
+      const paymentChanged = paymentStatus && paymentStatus !== (currentBooking.paymentStatus as any)
+
+      if (statusChanged) {
+        const title = `Booking ${status?.replace("_", " ")}`
+        const body = `Your booking for ${booking.service.name} is now ${status?.replace("_", " ")}.`
+        // Notify customer (unless they are the actor)
+        if (booking.customer.id !== actorId) {
+          notifications.push(
+            db.notification.create({ data: { title, body, userId: booking.customer.id, userType: "customer", link: `/dashboard/bookings` } })
+          )
+        }
+        // Notify provider (unless they are the actor)
+        if (booking.provider.id !== actorId) {
+          notifications.push(
+            db.notification.create({ data: { title, body, userId: booking.provider.id, userType: "provider", link: `/provider/bookings` } })
+          )
+        }
+      }
+
+      if (paymentChanged) {
+        const title = `Payment ${paymentStatus}`
+        const body = `Payment status for booking ${booking.service.name} is ${paymentStatus}.`
+        if (booking.customer.id !== actorId) {
+          notifications.push(db.notification.create({ data: { title, body, userId: booking.customer.id, userType: "customer", link: `/dashboard/payments` } }))
+        }
+        if (booking.provider.id !== actorId) {
+          notifications.push(db.notification.create({ data: { title, body, userId: booking.provider.id, userType: "provider", link: `/provider/earnings` } }))
+        }
+      }
+
+      if (notifications.length > 0) await Promise.all(notifications)
+    } catch (notifErr) {
+      console.error("Error creating notifications:", notifErr)
+    }
+
     return NextResponse.json({ booking })
   } catch (error) {
     console.error("Update booking error:", error)
     return NextResponse.json({ error: "Failed to update booking" }, { status: 500 })
+  }
+}
+
+// DELETE /api/bookings/[id] - Cancel a booking (soft cancel)
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  try {
+    const resolvedParams = await Promise.resolve(params)
+    const body = await request.json().catch(() => ({}))
+    const { actorId, actorType } = body
+
+    const currentBooking = await db.booking.findUnique({ where: { id: resolvedParams.id } })
+    if (!currentBooking) return NextResponse.json({ error: "Booking not found" }, { status: 404 })
+
+    // If it was confirmed, unblock the time slot
+    if (currentBooking.status === "confirmed") {
+      const dateStr = formatDateString(currentBooking.scheduledDate)
+      await unblockTimeSlot(currentBooking.providerId, dateStr, currentBooking.scheduledTime)
+    }
+
+    const booking = await db.booking.update({
+      where: { id: resolvedParams.id },
+      data: { status: "cancelled" },
+      include: {
+        service: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, email: true } },
+        provider: { select: { id: true, name: true, email: true } },
+      },
+    })
+
+    // Create notifications for relevant parties (skip actor)
+    try {
+      const notifications: Promise<any>[] = []
+      const title = `Booking cancelled`
+      const bodyText = `Booking for ${booking.service.name} on ${formatDateString(booking.scheduledDate)} at ${booking.scheduledTime} was cancelled.`
+      if (booking.customer.id !== actorId) {
+        notifications.push(db.notification.create({ data: { title, body: bodyText, userId: booking.customer.id, userType: "customer", link: `/dashboard/bookings` } }))
+      }
+      if (booking.provider.id !== actorId) {
+        notifications.push(db.notification.create({ data: { title, body: bodyText, userId: booking.provider.id, userType: "provider", link: `/provider/bookings` } }))
+      }
+      if (notifications.length > 0) await Promise.all(notifications)
+    } catch (notifErr) {
+      console.error("Error creating cancellation notifications:", notifErr)
+    }
+
+    return NextResponse.json({ ok: true, booking })
+  } catch (error) {
+    console.error("Delete booking error:", error)
+    return NextResponse.json({ error: "Failed to cancel booking" }, { status: 500 })
   }
 }
 

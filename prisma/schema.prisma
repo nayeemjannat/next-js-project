@@ -13,6 +13,7 @@ datasource db {
 model User {
   id                String    @id @default(cuid())
   email             String    @unique
+  emailVerified     Boolean   @default(false)
   name              String
   password          String
   userType          String    // "customer" | "provider" | "admin"
@@ -43,8 +44,33 @@ model User {
   reviewsGiven      Review[]  @relation("CustomerReviews")
   reviewsReceived   Review[]  @relation("ProviderReviews")
   addresses         Address[]
+  passwordResets    PasswordReset[]
+  emailVerifications EmailVerification[]
 
   @@map("users")
+}
+
+model PasswordReset {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("password_resets")
+}
+
+model EmailVerification {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String
+  newEmail   String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("email_verifications")
 }
 
 model Service {
@@ -223,5 +249,19 @@ model Payment {
   updatedAt     DateTime  @updatedAt
 
   @@map("payments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  body      String?
+  userId    String?  // target specific user; null = broadcast based on userType
+  userType  String?  // "customer" | "provider" | "admin" | null = all
+  data      String?
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }
 

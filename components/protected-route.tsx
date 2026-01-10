@@ -24,6 +24,8 @@ export function ProtectedRoute({ children, allowedUserTypes }: ProtectedRoutePro
       return
     }
 
+    // Email verification is optional; do not redirect here.
+
     if (!allowedUserTypes.includes(user.userType)) {
       router.push("/")
       return

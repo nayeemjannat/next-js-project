@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, Bell, LogOut } from "lucide-react"
+import { Search, LogOut, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/components/auth-context"
+import NotificationBell from "@/components/notification-bell"
 
 export function Header({ authenticated = false }: { authenticated?: boolean }) {
   const router = useRouter()
@@ -21,13 +22,24 @@ export function Header({ authenticated = false }: { authenticated?: boolean }) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="container flex items-center justify-between h-16">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">◆</span>
-          </div>
-          <span className="font-bold text-lg">Homease</span>
-        </Link>
+        {/* Logo and Back Button */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="p-2"
+            title="Go back"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">◆</span>
+            </div>
+            <span className="font-bold text-lg">Homease</span>
+          </Link>
+        </div>
 
         {/* Navigation - Desktop */}
         {!showAuth && (
@@ -60,9 +72,7 @@ export function Header({ authenticated = false }: { authenticated?: boolean }) {
 
           {showAuth && user ? (
             <>
-              <Button variant="ghost" size="icon">
-                <Bell className="w-5 h-5" />
-              </Button>
+              <NotificationBell />
               <div className="flex items-center gap-3">
                 <Avatar className="w-9 h-9 cursor-pointer">
                   <AvatarImage src={user.avatar || "/placeholder.svg"} />

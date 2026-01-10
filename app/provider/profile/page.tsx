@@ -131,6 +131,70 @@ export default function ProviderProfilePage() {
     }
   }
 
+  const [sendingVerification, setSendingVerification] = useState(false)
+  const [showOtpInput, setShowOtpInput] = useState(false)
+  const [otp, setOtp] = useState("")
+
+  const handleSendVerification = async () => {
+    if (!user) return
+    setSendingVerification(true)
+    try {
+      const res = await fetch("/api/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, newEmail: profile.email }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setShowOtpInput(true)
+        setOtp("")
+        if (data.dev) {
+          toast.success("Verification code printed to server console (dev)")
+        } else {
+          toast.success("Verification email sent")
+        }
+      } else {
+        throw new Error(data.error || "Failed to send verification")
+      }
+    } catch (err) {
+      console.error("send verification error", err)
+      toast.error("Failed to send verification")
+    } finally {
+      setSendingVerification(false)
+    }
+  }
+
+    const handleVerifyOtp = async () => {
+      if (!profile.email) return
+      try {
+        const res = await fetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: profile.email, otp })
+        })
+        const data = await res.json()
+        if (res.ok) {
+          toast.success('Email verified')
+          try {
+            const raw = localStorage.getItem('homease_user')
+            if (raw) {
+              const u = JSON.parse(raw)
+              u.emailVerified = true
+              localStorage.setItem('homease_user', JSON.stringify(u))
+            }
+          } catch (e) {
+            console.error('update local user', e)
+          }
+          window.location.reload()
+        } else {
+          throw new Error(data.error || 'Verification failed')
+        }
+      } catch (err) {
+        console.error('verify otp error', err)
+        toast.error(String(err))
+      }
+    }
+
   if (loading) {
     return (
       <ProtectedRoute allowedUserTypes={["provider"]}>
@@ -205,6 +269,30 @@ export default function ProviderProfilePage() {
               <Input id="email" value={profile.email} disabled className="bg-muted" />
               <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
             </div>
+
+            {user && !user.emailVerified && (
+              <div className="p-3 rounded border border-red-200 bg-red-50 text-red-800">
+                <p className="font-medium">Email not verified</p>
+                <p className="text-sm">Please verify your email to unlock certain features. In development the code is printed to the server console.</p>
+                <div className="mt-3">
+                  <div>
+                    <Button onClick={handleSendVerification} disabled={sendingVerification} className="bg-red-600 hover:bg-red-700">
+                      {sendingVerification ? "Sending..." : "Send verification"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            {showOtpInput && (
+            {showOtpInput && (
+              <div className="mt-4">
+                <Label htmlFor="otp">Enter OTP</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" maxLength={6} />
+                  <Button onClick={handleVerifyOtp} className="bg-primary">Verify</Button>
+                  <Button variant="outline" onClick={handleSendVerification} disabled={sendingVerification}>Resend</Button>
+                </div>
+              </div>
+            )}
             <div>
               <Label htmlFor="phone">Phone Number</Label>
               <Input
