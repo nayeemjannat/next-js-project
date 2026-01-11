@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, CheckCircle2, XCircle, Clock } from "lucide-react"
@@ -109,6 +114,8 @@ function ProviderMetrics({ providerId }: { providerId?: string }) {
     </div>
   )
 }
+  
+  
 
 function RecentActivity({ providerId }: { providerId?: string }) {
   const [activities, setActivities] = useState<any[]>([])
@@ -207,6 +214,223 @@ function RecentActivity({ providerId }: { providerId?: string }) {
         </div>
       ))}
     </>
+  )
+}
+
+function AvailableBids({ providerId }: { providerId?: string | null }) {
+  const [bids, setBids] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Proposal form
+  const [selectedBid, setSelectedBid] = useState<any | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingBidId, setEditingBidId] = useState<string | null>(null)
+  const [bidsListOpen, setBidsListOpen] = useState(false)
+  const [bidsList, setBidsList] = useState<any[]>([])
+  const [price, setPrice] = useState("")
+  const [message, setMessage] = useState("")
+  const [estimatedTime, setEstimatedTime] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (providerId) fetchAvailable()
+  }, [providerId])
+
+  const fetchAvailable = async () => {
+    if (!providerId) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/service-bids?userId=${providerId}&userType=provider`)
+      const data = await res.json()
+      if (res.ok) setBids(data.bids || [])
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to load available bids")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const submitProposal = async () => {
+    if (!providerId || !selectedBid) return
+    if (!price) return toast.error("Please enter a price")
+    setSubmitting(true)
+    try {
+      let res
+      if (editingBidId) {
+        res = await fetch(`/api/provider-bids`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bidId: editingBidId,
+            providerId,
+            price: Number(price),
+            message,
+            estimatedTime: estimatedTime ? Number(estimatedTime) : undefined,
+          }),
+        })
+      } else {
+        res = await fetch(`/api/provider-bids`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId,
+            serviceBidId: selectedBid.id,
+            price: Number(price),
+            message,
+            estimatedTime: estimatedTime ? Number(estimatedTime) : undefined,
+          }),
+        })
+      }
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(editingBidId ? "Proposal updated" : "Proposal submitted")
+        setSelectedBid(null)
+        setDialogOpen(false)
+        setPrice("")
+        setMessage("")
+        setEstimatedTime("")
+        setEditingBidId(null)
+        fetchAvailable()
+      } else {
+        throw new Error(data.error || "Failed to submit proposal")
+      }
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || "Failed to submit proposal")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) return <div className="text-sm text-muted-foreground">Loading available bids...</div>
+
+  return (
+    <div>
+      {bids.length === 0 ? (
+        <div className="text-sm text-muted-foreground">No open requests</div>
+      ) : (
+        <div className="space-y-3">
+          {bids.slice(0, 5).map((b) => (
+            <div key={b.id} className="flex items-center justify-between border rounded p-3">
+              <div>
+                <div className="font-medium">{b.serviceCategory}</div>
+                <div className="text-xs text-muted-foreground">{b.description}</div>
+                {(b.budgetMin || b.budgetMax) && (
+                  <div className="text-xs text-muted-foreground mt-1">Budget: {b.budgetMin ? `$${b.budgetMin.toFixed(2)}` : "—"} {b.budgetMax ? ` - $${b.budgetMax.toFixed(2)}` : ""}</div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const myBid = b.providerBids?.find((pb: any) => pb.providerId === providerId)
+                  if (myBid) {
+                    return (
+                      <Button size="sm" onClick={() => {
+                        setSelectedBid(b)
+                        setPrice(String(myBid.price))
+                        setMessage(myBid.message || "")
+                        setEstimatedTime(myBid.estimatedTime ? String(myBid.estimatedTime) : "")
+                        setEditingBidId(myBid.id)
+                        setDialogOpen(true)
+                      }}>Edit Proposal</Button>
+                    )
+                  }
+                  return <Button size="sm" onClick={() => { setSelectedBid(b); setDialogOpen(true); setEditingBidId(null) }}>Submit Proposal</Button>
+                })()}
+                <Button size="sm" variant="outline" onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/provider-bids?serviceBidId=${b.id}`)
+                    const data = await res.json()
+                    if (res.ok) {
+                      setBidsList(data.bids || [])
+                      setBidsListOpen(true)
+                    } else {
+                      toast.error(data.error || "Failed to load bids")
+                    }
+                  } catch (err) {
+                    console.error(err)
+                    toast.error("Failed to load bids")
+                  }
+                }}>View Proposals</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <ProposalDialog
+        open={dialogOpen}
+        onOpenChange={(open: boolean) => { setDialogOpen(open); if (!open) setSelectedBid(null) }}
+        selectedBid={selectedBid}
+        price={price}
+        setPrice={setPrice}
+        estimatedTime={estimatedTime}
+        setEstimatedTime={setEstimatedTime}
+        message={message}
+        setMessage={setMessage}
+        submitProposal={submitProposal}
+        submitting={submitting}
+      />
+      <BidsListDialog open={bidsListOpen} onOpenChange={(open: boolean) => { setBidsListOpen(open); if (!open) setBidsList([]) }} bids={bidsList} />
+    </div>
+  )
+}
+
+// Global proposal dialog (renders once)
+function ProposalDialog({ open, onOpenChange, selectedBid, price, setPrice, estimatedTime, setEstimatedTime, message, setMessage, submitProposal, submitting }: any) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Submit Proposal</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Price *</Label>
+            <Input type="number" inputMode="decimal" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="e.g. 120.00" />
+          </div>
+          <div>
+            <Label>Estimated Time (minutes)</Label>
+            <Input value={estimatedTime} onChange={(e) => setEstimatedTime(e.target.value)} placeholder="Optional" />
+          </div>
+          <div>
+            <Label>Message</Label>
+            <Textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={submitProposal} disabled={submitting}>{submitting ? "Submitting..." : "Submit"}</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function BidsListDialog({ open, onOpenChange, bids }: any) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Proposals</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          {bids.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No proposals</div>
+          ) : (
+            bids.map((pb: any) => (
+              <div key={pb.id} className="flex items-center justify-between border rounded p-2">
+                <div>
+                  <div className="font-medium">{pb.provider?.name || 'Provider'}</div>
+                  <div className="text-xs text-muted-foreground">${pb.price.toFixed(2)} • {pb.estimatedTime ? `${pb.estimatedTime} mins` : '—'}</div>
+                  {pb.message && <div className="text-xs mt-1">{pb.message}</div>}
+                </div>
+                <div className="text-xs">{pb.status}</div>
+              </div>
+            ))
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -328,6 +552,15 @@ export default function ProviderDashboardPage() {
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            {/* Available Bids Card */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Available Bids</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AvailableBids providerId={user?.id} />
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>

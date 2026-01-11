@@ -146,9 +146,9 @@ export default function ProviderBookingsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{booking.service.name}</h3>
-                        <Badge className={statusColors[booking.status as keyof typeof statusColors]}>
-                          {booking.status.replace("_", " ")}
-                        </Badge>
+                          <Badge className={statusColors[booking.status as keyof typeof statusColors]}>
+                            {booking.status.replace("_", " ")}
+                          </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">Customer: {booking.customer.name}</p>
                       {booking.customer.phone && (
@@ -185,7 +185,7 @@ export default function ProviderBookingsPage() {
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Message
                     </Button>
-                    {booking.status === "pending" && (
+                    {booking.status?.toString().trim() === "pending" && (
                       <>
                         <Button
                           size="sm"
@@ -206,7 +206,7 @@ export default function ProviderBookingsPage() {
                         </Button>
                       </>
                     )}
-                    {booking.status === "confirmed" && (
+                    {booking.status?.toString().trim() === "confirmed" && (
                       <Button
                         size="sm"
                         className="bg-primary hover:bg-primary/90"
@@ -215,7 +215,7 @@ export default function ProviderBookingsPage() {
                         Start Service
                       </Button>
                     )}
-                    {booking.status === "in_progress" && (
+                    {booking.status?.toString().trim() === "in_progress" && (
                       <Button
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"

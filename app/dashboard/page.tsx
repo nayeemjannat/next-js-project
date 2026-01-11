@@ -216,6 +216,13 @@ export default function DashboardPage() {
                 >
                   Find Services
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  onClick={() => router.push("/dashboard/service-bids")}
+                >
+                  Create Service Bid
+                </Button>
                 <Button 
                   variant="outline" 
                   className="w-full bg-transparent"

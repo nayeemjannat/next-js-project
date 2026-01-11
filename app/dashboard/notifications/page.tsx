@@ -13,6 +13,7 @@ interface Notification {
   title: string
   body?: string | null
   isRead: boolean
+  userId?: string | null
   link?: string | null
   createdAt: string
 }
@@ -83,6 +84,34 @@ export default function NotificationsPage() {
     }
   }
 
+  const clearByReadState = async (readState: boolean) => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/notifications?userId=${user.id}&userType=${user.userType}`)
+      const data = await res.json()
+      const list: Notification[] = data.notifications || []
+      // Only delete notifications owned by this user (do not delete global/userType notifications)
+      const toDelete = list
+        .filter(n => n.isRead === readState && n.userId && n.userId === user.id)
+        .map(n => n.id)
+        .filter(Boolean)
+      if (toDelete.length === 0) {
+        toast.success("No notifications to clear")
+        return
+      }
+      await Promise.all(toDelete.map(id => fetch(`/api/notifications/${id}`, { method: "DELETE" })))
+      await fetchNotifications()
+      window.dispatchEvent(new Event("notifications:changed"))
+      toast.success("Notifications cleared")
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to clear notifications")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
@@ -93,6 +122,8 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={fetchNotifications}>Refresh</Button>
           <Button onClick={markAllRead}>Mark all read</Button>
+          <Button variant="outline" onClick={() => clearByReadState(true)}>Clear read</Button>
+          <Button variant="outline" onClick={() => clearByReadState(false)}>Clear unread</Button>
         </div>
       </div>
 

@@ -72,6 +72,27 @@ export async function GET(request: NextRequest) {
             phone: true,
           },
         },
+        providerBid: {
+          select: {
+            id: true,
+            price: true,
+            message: true,
+            estimatedTime: true,
+            status: true,
+            provider: {
+              select: { id: true, name: true, avatar: true }
+            }
+          }
+        },
+        serviceBid: {
+          select: {
+            id: true,
+            serviceCategory: true,
+            description: true,
+            budgetMin: true,
+            budgetMax: true,
+          }
+        },
       },
       orderBy,
     })

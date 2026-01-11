@@ -1,6 +1,6 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { XCircle } from "lucide-react"
@@ -8,8 +8,13 @@ import { Header } from "@/components/header"
 import Link from "next/link"
 
 export default function PaymentFailPage() {
-  const searchParams = useSearchParams()
-  const transactionId = searchParams.get("transactionId")
+  const [transactionId, setTransactionId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    setTransactionId(params.get("transactionId"))
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">

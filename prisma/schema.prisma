@@ -11,242 +11,251 @@ datasource db {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  email             String    @unique
-  emailVerified     Boolean   @default(false)
-  name              String
-  password          String
-  userType          String    // "customer" | "provider" | "admin"
-  avatar            String?
-  phone             String?
-  
+  id            String  @id @default(cuid())
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  name          String
+  password      String
+  userType      String // "customer" | "provider" | "admin"
+  avatar        String?
+  phone         String?
+
   // Provider verification fields
-  isVerified        Boolean   @default(false)
-  verificationStatus String?  // "pending" | "approved" | "rejected"
-  verifiedAt        DateTime?
-  verifiedBy        String?   // Admin ID who verified
-  rejectionReason   String?
-  
+  isVerified         Boolean   @default(false)
+  verificationStatus String? // "pending" | "approved" | "rejected"
+  verifiedAt         DateTime?
+  verifiedBy         String? // Admin ID who verified
+  rejectionReason    String?
+
   // Provider profile fields
-  bio               String?   // Provider bio/description
-  experience        Int?      // Years of experience
-  location          String?   // Service location/city
-  specialties       String?   // Comma-separated specialties
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  bio         String? // Provider bio/description
+  experience  Int? // Years of experience
+  location    String? // Service location/city
+  specialties String? // Comma-separated specialties
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  services          Service[]
-  bookingsAsCustomer Booking[] @relation("CustomerBookings")
-  bookingsAsProvider Booking[] @relation("ProviderBookings")
-  schedule          ProviderSchedule?
-  reviewsGiven      Review[]  @relation("CustomerReviews")
-  reviewsReceived   Review[]  @relation("ProviderReviews")
-  addresses         Address[]
-  passwordResets    PasswordReset[]
+  services           Service[]
+  bookingsAsCustomer Booking[]           @relation("CustomerBookings")
+  bookingsAsProvider Booking[]           @relation("ProviderBookings")
+  schedule           ProviderSchedule?
+  reviewsGiven       Review[]            @relation("CustomerReviews")
+  reviewsReceived    Review[]            @relation("ProviderReviews")
+  serviceBids        ServiceBid[]
+  providerBids       ProviderBid[]
+  addresses          Address[]
+  passwordResets     PasswordReset[]
   emailVerifications EmailVerification[]
 
   @@map("users")
 }
 
 model PasswordReset {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash  String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
   @@map("password_resets")
 }
 
 model EmailVerification {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash  String
-  newEmail   String?
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  newEmail  String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
   @@map("email_verifications")
 }
 
 model Service {
-  id          String   @id @default(cuid())
+  id         String @id @default(cuid())
   providerId String
-  provider   User     @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  
+  provider   User   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
   name        String
   description String?
-  category    String   // "Plumbing", "Electrical", "Cleaning", etc.
-  price       Float    // Base price
-  priceType   String   @default("fixed") // "fixed" | "hourly" | "range"
-  priceRange  String?  // For range pricing like "80-120"
-  
+  category    String // "Plumbing", "Electrical", "Cleaning", etc.
+  price       Float // Base price
+  priceType   String  @default("fixed") // "fixed" | "hourly" | "range"
+  priceRange  String? // For range pricing like "80-120"
+
   // Service details
-  duration    Int?     // Duration in minutes
-  image       String?
-  isActive    Boolean  @default(true)
-  
+  duration Int? // Duration in minutes
+  image    String?
+  isActive Boolean @default(true)
+
   // Location
-  serviceArea String?   // Areas where service is available
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  serviceArea String? // Areas where service is available
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  bookings    Booking[]
-  reviews     Review[]
-  images      ServiceImage[]
+  bookings Booking[]
+  reviews  Review[]
+  images   ServiceImage[]
 
   @@map("services")
 }
 
 model Booking {
-  id          String   @id @default(cuid())
-  
-  customerId  String
-  customer    User     @relation("CustomerBookings", fields: [customerId], references: [id])
-  
-  providerId  String
-  provider    User     @relation("ProviderBookings", fields: [providerId], references: [id])
-  
-  serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id])
-  
+  id String @id @default(cuid())
+
+  customerId String
+  customer   User   @relation("CustomerBookings", fields: [customerId], references: [id])
+
+  providerId String
+  provider   User   @relation("ProviderBookings", fields: [providerId], references: [id])
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
   // Booking details
-  status      String   @default("pending") // "pending" | "confirmed" | "in_progress" | "completed" | "cancelled"
+  status        String   @default("pending") // "pending" | "confirmed" | "in_progress" | "completed" | "cancelled"
   scheduledDate DateTime
   scheduledTime String // "10:00 AM"
-  
+
   // Location
-  address     String
-  city        String?
-  state       String?
-  zipCode     String?
-  notes       String?
-  
+  address String
+  city    String?
+  state   String?
+  zipCode String?
+  notes   String?
+
+  // Link to bidding flow
+  providerBidId String?      @unique
+  providerBid   ProviderBid? @relation(fields: [providerBidId], references: [id], name: "ProviderBidBooking")
+
+  serviceBidId String?     @unique
+  serviceBid   ServiceBid? @relation(fields: [serviceBidId], references: [id], name: "ServiceBidBooking")
+
   // Pricing
-  price       Float
-  paymentStatus String @default("pending") // "pending" | "paid" | "refunded"
+  price         Float
+  paymentStatus String  @default("pending") // "pending" | "paid" | "refunded"
   paymentMethod String? // "card" | "cash" | "demo"
-  
+
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
   // Relations
-  review      Review?
-  payment     Payment?
+  review  Review?
+  payment Payment?
 
   @@map("bookings")
 }
 
 model ProviderSchedule {
-  id          String   @id @default(cuid())
-  providerId String   @unique
-  provider   User     @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  
+  id         String @id @default(cuid())
+  providerId String @unique
+  provider   User   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
   // Working hours for each day (stored as JSON: { "monday": { "start": "09:00", "end": "17:00", "enabled": true }, ... })
   // Days: monday, tuesday, wednesday, thursday, friday, saturday, sunday
-  workingHours String  @default("{}") // JSON string
-  
+  workingHours String @default("{}") // JSON string
+
   // Blocked dates (stored as JSON array of date strings: ["2024-12-25", ...])
   blockedDates String? // JSON array of date strings
-  
+
   // Blocked time slots (stored as JSON array: [{"date": "2024-12-25", "time": "10:00 AM"}, ...])
   blockedTimeSlots String? // JSON array of {date, time} objects
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("provider_schedules")
 }
 
 model Review {
-  id          String   @id @default(cuid())
-  
-  bookingId   String   @unique
-  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  
-  customerId  String
-  customer    User     @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
-  
-  providerId  String
-  provider    User     @relation("ProviderReviews", fields: [providerId], references: [id], onDelete: Cascade)
-  
-  serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
+  id String @id @default(cuid())
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  customerId String
+  customer   User   @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
+
+  providerId String
+  provider   User   @relation("ProviderReviews", fields: [providerId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
   // Review details
-  rating      Int      // 1-5 stars
-  comment     String?  // Optional review text
-  
+  rating  Int // 1-5 stars
+  comment String? // Optional review text
+
   // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("reviews")
 }
 
 model Address {
-  id          String   @id @default(cuid())
+  id         String @id @default(cuid())
   customerId String
-  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  label       String   // "Home", "Work", etc.
-  address     String
-  city        String?
-  state       String?
-  zipCode     String?
-  isDefault   Boolean  @default(false)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  label     String // "Home", "Work", etc.
+  address   String
+  city      String?
+  state     String?
+  zipCode   String?
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("addresses")
 }
 
 model PlatformSettings {
-  id          String   @id @default(cuid())
-  commissionRate Float  @default(0.15) // 15% commission
-  updatedAt   DateTime  @updatedAt
-  updatedBy   String?   // Admin ID who updated
+  id             String   @id @default(cuid())
+  commissionRate Float    @default(0.15) // 15% commission
+  updatedAt      DateTime @updatedAt
+  updatedBy      String? // Admin ID who updated
 
   @@map("platform_settings")
 }
 
 model ServiceImage {
-  id          String   @id @default(cuid())
-  serviceId  String
-  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
-  imageUrl   String   // Base64 or URL
-  order      Int      @default(0) // For ordering images
-  
-  createdAt   DateTime  @default(now())
+  id        String  @id @default(cuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  imageUrl String // Base64 or URL
+  order    Int    @default(0) // For ordering images
+
+  createdAt DateTime @default(now())
 
   @@map("service_images")
 }
 
 model Payment {
-  id            String   @id @default(cuid())
-  bookingId     String   @unique
-  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  
-  status        String   // "PAID" | "FAILED" | "PENDING"
+  id        String  @id @default(cuid())
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  status        String // "PAID" | "FAILED" | "PENDING"
   transactionId String?
-  method        String   // "SSLCommerz Sandbox" | "SSLCommerz Live" | etc.
+  method        String // "SSLCommerz Sandbox" | "SSLCommerz Live" | etc.
   amount        Float
-  
+
   // SSLCommerz response data
   gatewayResponse String? // JSON string of gateway response
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("payments")
 }
@@ -255,8 +264,8 @@ model Notification {
   id        String   @id @default(cuid())
   title     String
   body      String?
-  userId    String?  // target specific user; null = broadcast based on userType
-  userType  String?  // "customer" | "provider" | "admin" | null = all
+  userId    String? // target specific user; null = broadcast based on userType
+  userType  String? // "customer" | "provider" | "admin" | null = all
   data      String?
   isRead    Boolean  @default(false)
   link      String?
@@ -265,3 +274,46 @@ model Notification {
   @@map("notifications")
 }
 
+// Service bidding: customers create service requests (ServiceBid) and providers submit ProviderBid
+model ServiceBid {
+  id         String @id @default(cuid())
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  serviceCategory String
+  description     String?
+  budgetMin       Float?
+  budgetMax       Float?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  deadline        DateTime?
+  status          String    @default("OPEN") // OPEN | ASSIGNED | CLOSED
+
+  createdAt DateTime @default(now())
+
+  providerBids ProviderBid[]
+  booking      Booking?      @relation(name: "ServiceBidBooking")
+
+  @@map("service_bids")
+}
+
+model ProviderBid {
+  id           String     @id @default(cuid())
+  serviceBidId String
+  serviceBid   ServiceBid @relation(fields: [serviceBidId], references: [id], onDelete: Cascade)
+
+  providerId String
+  provider   User   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  price         Float
+  message       String?
+  estimatedTime Int?
+  status        String   @default("PENDING") // PENDING | ACCEPTED | REJECTED
+  createdAt     DateTime @default(now())
+
+  booking Booking? @relation(name: "ProviderBidBooking")
+
+  @@map("provider_bids")
+}

@@ -11,6 +11,7 @@ interface Notif {
   title: string
   body?: string | null
   isRead: boolean
+  userId?: string | null
   link?: string | null
   createdAt: string
 }
@@ -32,6 +33,28 @@ export default function NotificationBell() {
       window.removeEventListener("notifications:changed", onUpdate)
     }
   }, [user])
+
+  const clearByReadState = async (readState: boolean) => {
+    if (!user) return
+    try {
+      // fetch all notifications for this user
+      const res = await fetch(`/api/notifications?userId=${user.id}&userType=${user.userType}`)
+      const data = await res.json()
+      const list: Notif[] = data.notifications || []
+      // Only delete notifications that belong to this specific user (userId match).
+      const toDelete = list
+        .filter(n => (n.isRead === readState) && (n.userId && n.userId === user.id))
+        .map(n => n.id)
+        .filter(Boolean)
+      if (toDelete.length === 0) return
+      // delete in parallel (skip any falsy ids)
+      await Promise.all(toDelete.map(id => fetch(`/api/notifications/${id}`, { method: "DELETE" })))
+      await fetchData()
+      window.dispatchEvent(new Event("notifications:changed"))
+    } catch (e) {
+      console.warn("clearByReadState failed", e)
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -111,7 +134,11 @@ export default function NotificationBell() {
       <PopoverContent className="w-80 pointer-events-auto z-50">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-semibold">Notifications</h4>
-          <button className="text-sm text-muted-foreground" onClick={fetchData}>Refresh</button>
+          <div className="flex items-center gap-2">
+            <button className="text-sm text-muted-foreground" onClick={fetchData}>Refresh</button>
+            <button className="text-sm text-muted-foreground" onClick={() => clearByReadState(true)}>Clear read</button>
+            <button className="text-sm text-muted-foreground" onClick={() => clearByReadState(false)}>Clear unread</button>
+          </div>
         </div>
         <div className="space-y-2 max-h-64 overflow-auto">
           {items.length === 0 && <p className="text-sm text-muted-foreground">No notifications</p>}

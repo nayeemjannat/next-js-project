@@ -281,16 +281,17 @@ export default function ProviderProfilePage() {
                     </Button>
                   </div>
                 </div>
-              </div>
-            {showOtpInput && (
-            {showOtpInput && (
-              <div className="mt-4">
-                <Label htmlFor="otp">Enter OTP</Label>
-                <div className="flex gap-2 mt-2">
-                  <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" maxLength={6} />
-                  <Button onClick={handleVerifyOtp} className="bg-primary">Verify</Button>
-                  <Button variant="outline" onClick={handleSendVerification} disabled={sendingVerification}>Resend</Button>
-                </div>
+
+                {showOtpInput && (
+                  <div className="mt-4">
+                    <Label htmlFor="otp">Enter OTP</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" maxLength={6} />
+                      <Button onClick={handleVerifyOtp} className="bg-primary">Verify</Button>
+                      <Button variant="outline" onClick={handleSendVerification} disabled={sendingVerification}>Resend</Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             <div>

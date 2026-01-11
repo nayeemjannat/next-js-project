@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
@@ -9,15 +9,16 @@ import { Header } from "@/components/header"
 import Link from "next/link"
 
 export default function PaymentSuccessPage() {
-  const searchParams = useSearchParams()
   const router = useRouter()
   const [bookingId, setBookingId] = useState<string | null>(null)
   const [transactionId, setTransactionId] = useState<string | null>(null)
   const [verifying, setVerifying] = useState(true)
 
   useEffect(() => {
-    const bid = searchParams.get("bookingId")
-    const tid = searchParams.get("transactionId") || searchParams.get("tran_id") || searchParams.get("val_id")
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    const bid = params.get("bookingId")
+    const tid = params.get("transactionId") || params.get("tran_id") || params.get("val_id")
     setBookingId(bid)
     setTransactionId(tid)
 
@@ -27,7 +28,7 @@ export default function PaymentSuccessPage() {
     } else {
       setVerifying(false)
     }
-  }, [searchParams])
+  }, [])
 
   const verifyPayment = async (tranId: string, bid: string | null) => {
     try {

@@ -1,20 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-context"
 
 export default function VerifyEmailPage() {
-  const searchParams = useSearchParams()
-  const token = searchParams?.get("token") || ''
+  const [token, setToken] = useState('')
   const [status, setStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const router = useRouter()
   const { user } = useAuth()
   const [emailInput, setEmailInput] = useState(user?.email ?? "")
   const [otpInput, setOtpInput] = useState("")
+
+  // Read token from URL on client-side to avoid SSR useSearchParams requirement
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const t = params.get('token') || ''
+    setToken(t)
+  }, [])
 
   useEffect(() => {
     if (!token) return

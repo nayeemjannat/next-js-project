@@ -66,8 +66,34 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
-    await db.notification.delete({ where: { id } })
+    let id = params.id
+    if (!id) {
+      // fallback: try to extract id from the raw request URL
+      try {
+        const url = new URL(request.url)
+        const parts = url.pathname.split("/").filter(Boolean)
+        id = parts.length > 0 ? parts[parts.length - 1] : undefined
+        console.log("DELETE /api/notifications extracted id from URL:", id)
+      } catch (e) {
+        console.error("Failed to parse request.url for id", e)
+      }
+    }
+
+    if (!id) {
+      console.error("DELETE /api/notifications missing id param", params)
+      return NextResponse.json({ ok: false, error: "Missing id param" }, { status: 400 })
+    }
+
+    try {
+      await db.notification.delete({ where: { id } })
+    } catch (e: any) {
+      // Ignore missing-record errors and return 404-like response
+      if (e?.code === 'P2025' || /Record to delete not found/.test(String(e?.message || ''))) {
+        return NextResponse.json({ ok: false, error: 'Notification not found' }, { status: 404 })
+      }
+      throw e
+    }
+
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("DELETE /api/notifications/[id] error", error)
