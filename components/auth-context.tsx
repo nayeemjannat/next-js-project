@@ -14,6 +14,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // First check session from server
+        const sessionResponse = await fetch("/api/auth/session")
+        if (sessionResponse.ok) {
+          const data = await sessionResponse.json()
+          if (data.user) {
+            setUser(data.user)
+            localStorage.setItem("homease_user", JSON.stringify(data.user))
+            return
+          }
+        }
+
+        // Fallback to localStorage for backward compatibility
         const storedUser = localStorage.getItem("homease_user")
         if (storedUser) {
           setUser(JSON.parse(storedUser))
@@ -100,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: data.user.id, newEmail: data.user.email }),
+          credentials: 'include',
         })
       } catch (err) {
         console.error('send-verification error', err)
@@ -113,9 +126,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("homease_user")
+  const loginWithGoogle = async (
+    userType: UserType = "customer",
+    returnUrl?: string,
+    action: "login" | "signup" = "login"
+  ) => {
+    try {
+      const params = new URLSearchParams({ userType })
+      params.set("action", action)
+      if (returnUrl) {
+        params.set("returnUrl", returnUrl)
+      }
+
+      const response = await fetch(`/api/auth/google?${params.toString()}`)
+      const data = await response.json()
+
+      if (!response.ok || !data.authUrl) {
+        throw new Error(data.error || "Failed to initiate Google OAuth")
+      }
+
+      // Redirect to Google OAuth
+      window.location.href = data.authUrl
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const logout = async () => {
+    try {
+      // Call logout API to clear server session
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch (error) {
+      console.error("Logout API error:", error)
+    } finally {
+      // Clear client state regardless of API call result
+      setUser(null)
+      localStorage.removeItem("homease_user")
+    }
   }
 
   const value: AuthContextType = {
@@ -123,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     login,
     register,
+    loginWithGoogle,
     logout,
     isAuthenticated: !!user,
   }

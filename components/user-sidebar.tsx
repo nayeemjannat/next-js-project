@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Home,
   Calendar,
@@ -17,6 +17,7 @@ import {
   Clock,
   Star,
 } from "lucide-react"
+import { useAuth } from "@/components/auth-context"
 
 interface UserSidebarProps {
   userType: "customer" | "provider" | "admin"
@@ -24,6 +25,13 @@ interface UserSidebarProps {
 
 export function UserSidebar({ userType }: UserSidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/")
+  }
 
   const getNavItems = () => {
     if (userType === "admin") {
@@ -95,7 +103,10 @@ export function UserSidebar({ userType }: UserSidebarProps) {
 
       {/* Footer */}
       <div className="space-y-2 pt-4 border-t border-border">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-secondary transition-colors text-left">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-secondary transition-colors text-left"
+        >
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">Logout</span>
         </button>

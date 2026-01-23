@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { Search, LogOut, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -11,9 +12,16 @@ import NotificationBell from "@/components/notification-bell"
 export function Header({ authenticated = false }: { authenticated?: boolean }) {
   const router = useRouter()
   const { user, logout, isAuthenticated } = useAuth()
+  const [query, setQuery] = useState("")
 
-  const handleLogout = () => {
-    logout()
+  const handleSearch = () => {
+    const q = query?.toString().trim()
+    if (!q) return
+    router.push(`/search?q=${encodeURIComponent(q)}`)
+  }
+
+  const handleLogout = async () => {
+    await logout()
     router.push("/")
   }
 
@@ -66,8 +74,14 @@ export function Header({ authenticated = false }: { authenticated?: boolean }) {
             <input
               type="text"
               placeholder="Search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch()
+              }}
               className="bg-transparent border-none outline-none text-sm placeholder:text-muted-foreground w-32"
             />
+            <button className="text-sm text-muted-foreground" onClick={handleSearch} aria-label="Search">Search</button>
           </div>
 
           {showAuth && user ? (

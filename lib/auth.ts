@@ -13,6 +13,10 @@ export interface User {
   verifiedAt?: string
   rejectionReason?: string
   createdAt: string
+  provider?: string | null // "google" | "email" | null
+  authMethod?: string | null // "google" | "email" | "both"
+  hasPassword?: boolean
+  emailVerified?: boolean
 }
 
 export interface AuthContextType {
@@ -20,7 +24,8 @@ export interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name: string, userType: UserType) => Promise<void>
-  logout: () => void
+  loginWithGoogle: (userType?: UserType, returnUrl?: string, action?: "login" | "signup") => Promise<void>
+  logout: () => Promise<void>
   isAuthenticated: boolean
 }
 

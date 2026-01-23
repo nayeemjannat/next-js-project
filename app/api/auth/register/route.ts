@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { hashPassword } from "@/lib/auth-utils"
 import { validateEmail, validatePassword, type UserType } from "@/lib/auth"
+import { createSession, setSessionCookie } from "@/lib/session"
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,11 +76,29 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         name: name.trim(),
         password: hashedPassword,
+        authMethod: "email",
+        hasPassword: true,
         userType,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name.trim())}`,
         ...verificationData,
       },
     })
+
+    // Create session
+    const sessionToken = await createSession({
+      userId: newUser.id,
+      email: newUser.email,
+      userType: newUser.userType,
+    })
+
+    // Store session token in database
+    await db.user.update({
+      where: { id: newUser.id },
+      data: { sessionToken },
+    })
+
+    // Set session cookie
+    await setSessionCookie(sessionToken)
 
     // Return user data without password
     const { password: _, ...userWithoutPassword } = newUser

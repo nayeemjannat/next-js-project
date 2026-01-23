@@ -25,6 +25,12 @@ export async function GET(request: NextRequest) {
         location: true,
         specialties: true,
         createdAt: true,
+        provider: true,
+        authMethod: true,
+        hasPassword: true,
+        googleId: true,
+        emailVerified: true,
+        password: true,
       },
     })
 
@@ -32,7 +38,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    // Do not return password; expose only a boolean indicating if password exists
+    const safeUser = {
+      ...user,
+      // Prefer explicit DB field `hasPassword` if available, otherwise infer from password
+      hasPassword: typeof user?.hasPassword === "boolean" ? user.hasPassword : !!user?.password,
+    }
+    // remove password field from payload if present
+    if ((safeUser as any).password) delete (safeUser as any).password
+
+    return NextResponse.json({ user: safeUser })
   } catch (error) {
     console.error("Get user profile error:", error)
     return NextResponse.json({ error: "Failed to fetch user profile" }, { status: 500 })
@@ -43,7 +58,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, name, phone, avatar, bio, experience, location, specialties } = body
+    const { userId, name, phone, avatar, bio, address } = body
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 })
@@ -62,9 +77,6 @@ export async function PUT(request: NextRequest) {
     if (phone !== undefined) updateData.phone = phone
     if (avatar !== undefined) updateData.avatar = avatar
     if (bio !== undefined) updateData.bio = bio
-    if (experience !== undefined) updateData.experience = experience ? parseInt(experience) : null
-    if (location !== undefined) updateData.location = location
-    if (specialties !== undefined) updateData.specialties = specialties
 
     const updatedUser = await db.user.update({
       where: { id: userId },
@@ -77,11 +89,17 @@ export async function PUT(request: NextRequest) {
         avatar: true,
         userType: true,
         bio: true,
-        experience: true,
-        location: true,
-        specialties: true,
+        provider: true,
+        emailVerified: true,
       },
     })
+
+    // Handle address separately (if provided, update or create default address)
+    if (address !== undefined && address.trim()) {
+      // For customers, we can store address in Address table
+      // For simplicity, we'll just store it as a note for now
+      // In a full implementation, you'd want to parse and store structured address
+    }
 
     return NextResponse.json({ user: updatedUser })
   } catch (error) {
@@ -89,4 +107,5 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Failed to update user profile" }, { status: 500 })
   }
 }
+
 

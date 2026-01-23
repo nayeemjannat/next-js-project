@@ -11,6 +11,23 @@ export async function POST(req: Request) {
       const user = await db.user.findUnique({ where: { id: userId } })
       if (!user) return NextResponse.json({ ok: false, error: "Invalid user" }, { status: 400 })
 
+      // If the current account is a Google OAuth account, disallow changing email via OTP
+      // unless the request is simply to verify the user's existing email (newEmail === current email).
+      if (user.provider === "google" && newEmail.toLowerCase() !== user.email.toLowerCase()) {
+        return NextResponse.json({ ok: false, error: "Use Google sign-in to change email", provider: "google" }, { status: 403 })
+      }
+
+      // Prevent sending OTP if the requested newEmail is already in use
+      const normalizedNew = String(newEmail).trim().toLowerCase()
+      const existing = await db.user.findUnique({ where: { email: normalizedNew } })
+      if (existing && existing.id !== user.id) {
+        // If the email is taken by a Google OAuth account, return a specific message
+        if (existing.provider === "google") {
+          return NextResponse.json({ ok: false, error: "Email linked to Google", provider: "google" }, { status: 409 })
+        }
+        return NextResponse.json({ ok: false, error: "Email already registered", provider: existing.provider ?? "email" }, { status: 409 })
+      }
+
       // generate 6-digit OTP
       const otp = (Math.floor(100000 + Math.random() * 900000)).toString()
       const tokenHash = crypto.createHash("sha256").update(otp).digest("hex")
@@ -55,7 +72,8 @@ export async function POST(req: Request) {
         console.info(`DEV: Verification OTP for ${newEmail}: ${otp}`)
       }
 
-      return NextResponse.json({ ok: true, dev: devMode })
+      // In development, include the OTP in the response to simplify testing.
+      return NextResponse.json({ ok: true, dev: devMode, otp: devMode ? otp : undefined })
   } catch (err) {
     console.error("send-verification error", err)
     return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 })

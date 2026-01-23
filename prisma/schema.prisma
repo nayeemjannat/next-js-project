@@ -15,10 +15,19 @@ model User {
   email         String  @unique
   emailVerified Boolean @default(false)
   name          String
-  password      String
+  password      String? // Optional for OAuth users
   userType      String // "customer" | "provider" | "admin"
   avatar        String?
   phone         String?
+
+  // OAuth fields
+  provider    String? // "google" | "email" (null for legacy users)
+  providerId  String? // OAuth provider user ID (e.g., Google sub)
+  // New fields to better track authentication methods
+  authMethod  String? @default("email") // "google" | "email" | "both"
+  hasPassword Boolean  @default(false)
+  googleId    String? // explicit Google ID (same as providerId for Google users)
+  sessionToken String? @unique // For secure session management
 
   // Provider verification fields
   isVerified         Boolean   @default(false)

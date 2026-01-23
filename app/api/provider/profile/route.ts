@@ -26,6 +26,12 @@ export async function GET(request: NextRequest) {
         isVerified: true,
         verificationStatus: true,
         createdAt: true,
+        provider: true,
+        authMethod: true,
+        hasPassword: true,
+        googleId: true,
+        emailVerified: true,
+        password: true,
       },
     })
 
@@ -33,7 +39,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ provider })
+    const safeProvider = {
+      ...provider,
+      // Prefer explicit DB field `hasPassword` if available, otherwise infer from password
+      hasPassword: typeof provider?.hasPassword === "boolean" ? provider.hasPassword : !!provider?.password,
+      authMethod: provider?.authMethod || provider?.provider || "email",
+      googleId: provider?.googleId || null,
+    }
+    if ((safeProvider as any).password) delete (safeProvider as any).password
+
+    return NextResponse.json({ provider: safeProvider })
   } catch (error) {
     console.error("Get provider profile error:", error)
     return NextResponse.json({ error: "Failed to fetch provider profile" }, { status: 500 })
@@ -83,6 +98,8 @@ export async function PUT(request: NextRequest) {
         specialties: true,
         isVerified: true,
         verificationStatus: true,
+        provider: true,
+        emailVerified: true,
       },
     })
 

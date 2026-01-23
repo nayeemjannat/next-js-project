@@ -66,13 +66,13 @@ export function Sidebar({ userType = "customer" }: SidebarProps) {
 
   const links = userType === "provider" ? providerLinks : userType === "admin" ? adminLinks : customerLinks
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     router.push("/")
   }
 
   return (
-    <aside className="w-64 bg-secondary border-r border-border min-h-screen">
+    <aside className="w-64 bg-secondary border-r border-border min-h-screen relative">
       {/* Profile Section */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3 mb-2">
