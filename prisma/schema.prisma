@@ -326,3 +326,18 @@ model ProviderBid {
 
   @@map("provider_bids")
 }
+
+// Content index for AI assistant (keyword search)
+model HomeaseContent {
+  id         String   @id @default(cuid())
+  pageTitle  String
+  pageUrl    String
+  contentType String
+  content    String
+  // Comma-separated keywords; keeps compatibility with SQLite and Postgres
+  keywords   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("homease_content")
+}

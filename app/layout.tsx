@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/auth-context"
 import "./globals.css"
 import LinkErrorToast from "@/components/link-error-toast"
+import ChatWidget from "@/components/chat-widget"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -44,6 +45,7 @@ export default function RootLayout({
         <AuthProvider>
           <LinkErrorToast />
           {children}
+          <ChatWidget />
         </AuthProvider>
         <Analytics />
       </body>

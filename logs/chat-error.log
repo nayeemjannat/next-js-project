@@ -1,0 +1,1365 @@
+2026-01-23T19:20:13.000Z
+PrismaClientValidationError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["db"].homeaseContent.findMany()` invocation in
+E:\next-js-project\.next\dev\server\chunks\[root-of-the-server]__643cf882._.js:213:156
+
+  210         }
+  211     }
+  212 }
+→ 213 const results = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["db"].homeaseContent.findMany({
+        where: {
+          OR: [
+            {
+              content: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "rovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "rovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "rovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "rovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "rovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "povider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "povider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "povider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "povider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "povider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "prvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "prvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "prvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "prvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "prvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provder",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provder",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provder",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provder",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provder",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provier",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provier",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provier",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provier",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provier",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providr",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providr",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providr",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providr",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providr",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provide",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provide",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provide",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provide",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provide",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "rpovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "rpovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "rpovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "rpovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "rpovider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "porvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "porvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "porvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "porvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "porvider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "prvoider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "prvoider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "prvoider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "prvoider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "prvoider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proivder",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proivder",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proivder",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proivder",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proivder",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provdier",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provdier",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provdier",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provdier",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provdier",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proviedr",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proviedr",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proviedr",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proviedr",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proviedr",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providre",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providre",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providre",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providre",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providre",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providers",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provider",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "roviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "roviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "roviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "roviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "roviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "poviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "poviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "poviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "poviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "poviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "prviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "prviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "prviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "prviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "prviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proviers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proviers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proviers",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proviers",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proviers",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provides",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provides",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provides",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provides",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provides",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "rpoviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "rpoviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "rpoviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "rpoviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "rpoviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "porviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "porviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "porviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "porviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "porviders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "prvoiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "prvoiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "prvoiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "prvoiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "prvoiders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proivders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proivders",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proivders",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proivders",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proivders",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "provdiers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "provdiers",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "provdiers",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "provdiers",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "provdiers",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "proviedrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "proviedrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "proviedrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "proviedrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "proviedrs",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providres",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providres",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providres",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providres",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providres",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "providesr",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "providesr",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "providesr",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "providesr",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "providesr",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "near",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "near",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "near",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "near",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "near",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "nears",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "nears",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "nears",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "nears",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "nears",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "ear",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "ear",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "ear",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "ear",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "ear",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "nar",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "nar",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "nar",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "nar",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "nar",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "ner",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "ner",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "ner",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "ner",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "ner",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "nea",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "nea",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "nea",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "nea",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "nea",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "enar",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "enar",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "enar",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "enar",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "enar",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "naer",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "naer",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "naer",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "naer",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "naer",
+                mode: "insensitive"
+              }
+            },
+            {
+              content: {
+                contains: "nera",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageTitle: {
+                contains: "nera",
+                mode: "insensitive"
+              }
+            },
+            {
+              pageUrl: {
+                contains: "nera",
+                mode: "insensitive"
+              }
+            },
+            {
+              contentType: {
+                contains: "nera",
+                mode: "insensitive"
+              }
+            },
+            {
+              keywords: {
+                contains: "nera",
+                mode: "insensitive"
+              }
+            }
+          ]
+        },
+        take: 5
+      })
+
+Unknown argument `mode`. Did you mean `lte`? Available options are marked with ?.
+    at wn (E:\next-js-project\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (E:\next-js-project\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (E:\next-js-project\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (E:\next-js-project\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (E:\next-js-project\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async searchContent (E:\next-js-project\.next\dev\server\chunks\[root-of-the-server]__643cf882._.js:213:21)
+    at async answerQuestion (E:\next-js-project\.next\dev\server\chunks\[root-of-the-server]__643cf882._.js:273:21)
+    at async POST (E:\next-js-project\.next\dev\server\chunks\[root-of-the-server]__643cf882._.js:359:37)
+    at async AppRouteRouteModule.do (E:\next-js-project\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:37789)
+    at async AppRouteRouteModule.handle (E:\next-js-project\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:45045)
+    at async responseGenerator (E:\next-js-project\.next\dev\server\chunks\node_modules_next_6353493c._.js:14333:38)
+    at async AppRouteRouteModule.handleResponse (E:\next-js-project\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:1:187851)
+    at async handleResponse (E:\next-js-project\.next\dev\server\chunks\node_modules_next_6353493c._.js:14395:32)
+    at async handler (E:\next-js-project\.next\dev\server\chunks\node_modules_next_6353493c._.js:14448:13)
+    at async DevServer.renderToResponseWithComponentsImpl (E:\next-js-project\node_modules\next\dist\server\base-server.js:1413:9)
+    at async DevServer.renderPageComponent (E:\next-js-project\node_modules\next\dist\server\base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (E:\next-js-project\node_modules\next\dist\server\base-server.js:1515:32)
+    at async DevServer.pipeImpl (E:\next-js-project\node_modules\next\dist\server\base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (E:\next-js-project\node_modules\next\dist\server\next-server.js:394:17)
+    at async DevServer.handleRequestImpl (E:\next-js-project\node_modules\next\dist\server\base-server.js:912:17)
+    at async E:\next-js-project\node_modules\next\dist\server\dev\next-dev-server.js:382:20
+    at async Span.traceAsyncFn (E:\next-js-project\node_modules\next\dist\trace\trace.js:157:20)
+    at async DevServer.handleRequest (E:\next-js-project\node_modules\next\dist\server\dev\next-dev-server.js:378:24)
+    at async invokeRender (E:\next-js-project\node_modules\next\dist\server\lib\router-server.js:240:21)
+    at async handleRequest (E:\next-js-project\node_modules\next\dist\server\lib\router-server.js:436:24)
+    at async requestHandlerImpl (E:\next-js-project\node_modules\next\dist\server\lib\router-server.js:484:13)
+    at async Server.requestListener (E:\next-js-project\node_modules\next\dist\server\lib\start-server.js:226:13)
+
